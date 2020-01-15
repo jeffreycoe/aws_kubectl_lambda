@@ -30,5 +30,5 @@ def lambda_handler(event:, context:)
   
   kubectl.apply(config_map_file)
 
-  { statusCode: 200, body: JSON.generate("EKS cluster config map updated successfully.") }
+  success('EKS cluster config map updated successfully.')
 end
