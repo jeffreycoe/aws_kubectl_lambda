@@ -9,7 +9,7 @@ def success(msg)
 end
 
 def lambda_handler(event:, context:)
-  if event['RequestType'] == 'Delete'
+  if event['RequestType'] == 'Delete' || event['RequestType'] == 'UPDATE'
     msg = "#{event['RequestType'].to_s} event detected. "\
           "This method is not implemented. Skipping."
 
@@ -30,5 +30,5 @@ def lambda_handler(event:, context:)
   
   kubectl.apply(config_map_file)
 
-  success('EKS cluster config map updated successfully.')
+  { statusCode: 200, body: JSON.generate("EKS cluster config map updated successfully.") }
 end
