@@ -21,8 +21,10 @@ def lambda_handler(event:, context:)
   config_map_file = '/tmp/aws-auth-cm.yml'
   cluster_name = event['ResourceProperties']['ClusterName']
   config_yaml = event['ResourceProperties']['ConfigMap']
+
   puts "Cluster Name: #{cluster_name}"
   puts "Config YAML: \n#{config_yaml}"
+
   kubeconfig.generate_kubeconfig(cluster_name)
 
   puts 'Writing k8s cluster config map file to /tmp/aws-auth-cm.yml...'
