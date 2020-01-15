@@ -4,10 +4,6 @@ require_relative './aws/cli.rb'
 require_relative './aws/eks/kubeconfig.rb'
 require_relative './kubernetes/kubectl.rb'
 
-def success(msg)
-  { statusCode: 200, body: JSON.generate("#{msg}") }
-end
-
 def lambda_handler(event:, context:)
   if event['RequestType'] == 'Delete'
     msg = "#{event['RequestType'].to_s} event detected. This method is not implemented. Skipping."
@@ -15,6 +11,7 @@ def lambda_handler(event:, context:)
     return success(msg)
   end
   
+  lambda = AWS::Lambda.new
   cfn = AWS::CloudFormation.new(event['ResponseURL'], event['StackId'], event['RequestId'], event['LogicalResourceId'])
   kubeconfig = AWS::EKS::Kubeconfig.new
   kubectl = Kubernetes::Kubectl.new
@@ -34,7 +31,7 @@ def lambda_handler(event:, context:)
   kubectl.apply(config_map_file)
 
   cfn.send_success
-  success('EKS cluster config map updated successfully.')
+  lambda.success('EKS cluster config map updated successfully.')
 rescue => e
   # Send a failure message to the pre-signed S3 URL to notify cfn the resource failed
   cfn.send_failure
