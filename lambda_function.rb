@@ -10,14 +10,15 @@ end
 
 def lambda_handler(event:, context:)
   if event['RequestType'] == 'Delete'
-    msg = "#{event['RequestType'].to_s} event detected. "\
-          "This method is not implemented. Skipping."
+    msg = "#{event['RequestType'].to_s} event detected. This method is not implemented. Skipping."
 
     return success(msg)
   end
   
+  cfn = AWS::CloudFormation.new(event['ResponseURL'], event['StackId'], event['RequestId'], event['LogicalResourceId'])
   kubeconfig = AWS::EKS::Kubeconfig.new
   kubectl = Kubernetes::Kubectl.new
+
   config_map_file = '/tmp/aws-auth-cm.yml'
   cluster_name = event['ResourceProperties']['ClusterName']
   config_yaml = event['ResourceProperties']['ConfigMap']
@@ -32,5 +33,10 @@ def lambda_handler(event:, context:)
   
   kubectl.apply(config_map_file)
 
+  cfn.send_success
   success('EKS cluster config map updated successfully.')
+rescue => e
+  # Send a failure message to the pre-signed S3 URL to notify cfn the resource failed
+  cfn.send_failure
+  raise e
 end
