@@ -25,25 +25,25 @@ class AWS
     
     def http_put(body = nil)
       uri = ::URI.parse(@response_url)
-      
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = (uri.scheme == 'https')
+
       request = Net::HTTP::Put.new(uri)
       request.body = body.to_json
       request['Content-Type'] = 'application/json'
+
+      response = http.request(request)
       
-      response = Net::HTTP.new(uri.host, uri.port).start { |http| http.request(request) }
-      
-      response.code
+      response.code.to_i
     rescue => e
-      puts "ERROR: Failed to send response to CloudFormation pre-signed S3 URL. Error Details: #{e} RC: #{response.code}"
+      puts "ERROR: Failed to send response to CloudFormation pre-signed S3 URL. Error Details: #{e}"
       raise e
     end
     
-    def provider_response(status, reason)
-      reason = '' if reason.nil?
-
+    def provider_response(status, reason = '')
       {
         Status: status,
-        Reason: reason,
+        Reason: reason.to_s,
         PhysicalResourceId: @request_id,
         StackId: @stack_id,
         RequestId: @request_id,
