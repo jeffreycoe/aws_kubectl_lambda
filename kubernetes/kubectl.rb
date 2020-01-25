@@ -8,7 +8,7 @@ class Kubernetes
       @config_file = config_file
       @binary_path = binary_path
 
-      unless ::File.exist?(kubectl)
+      unless ::File.exist?("#{@binary_path}/kubectl")
         puts "Copying kubectl binary to #{@binary_path}..."
         `mkdir -p #{@binary_path}; cp -R -v /opt/kubectl/kubectl #{@binary_path}; chmod +x #{@binary_path}/kubectl`
       end
