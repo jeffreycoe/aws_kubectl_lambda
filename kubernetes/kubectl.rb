@@ -4,12 +4,13 @@ class Kubernetes
       "#{@binary_path}/kubectl --kubeconfig \"#{@config_file}\""
     end
     
-    def initialize(config_file = "/tmp/kubeconfig", binary_path = "/tmp/kubectl")
+    def initialize(config_file = "/tmp/kubeconfig", binary_path = "/tmp/kubectl", cfn_helper)
+      @cfn_helper = cfn_helper
       @config_file = config_file
       @binary_path = binary_path
 
       unless ::File.exist?("#{@binary_path}/kubectl")
-        puts "Copying kubectl binary to #{@binary_path}..."
+        @cfn_helper.logger.info("Copying kubectl binary to #{@binary_path}...")
         `mkdir -p #{@binary_path}; cp -R -v /opt/kubectl/kubectl #{@binary_path}; chmod +x #{@binary_path}/kubectl`
       end
     end
@@ -20,9 +21,10 @@ class Kubernetes
     
     def apply(config_file)
       cmd = "#{kubectl} apply -f #{config_file}"
-      puts "Executing #{cmd}"
+      @cfn_helper.logger.info("Executing #{cmd}")
 
       `#{cmd}`
+      @cfn_helper.logger.info("kubectl apply executed successfully!")
     end
   end
 end

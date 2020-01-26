@@ -1,49 +1,54 @@
-require 'json'
+require 'aws_cloudformation_helper'
 
 require_relative './aws/cli.rb'
-require_relative './aws/cloud_formation.rb'
-require_relative './aws/lambda.rb'
 require_relative './aws/eks/kubeconfig.rb'
+require_relative './aws/lambda/helper.rb'
 require_relative './kubernetes/kubectl.rb'
 
-def initialize_cfn_helper(event)
-  @cfn ||= AWS::CloudFormation.new(event['ResponseURL'], event['StackId'], event['RequestId'], event['LogicalResourceId'])
-  @cfn
+def create
+  raise "Config map file not found. Cannot perform create." unless ::File.exist?(@config_map_file)
+
+  @kubectl.apply(@config_map_file)
+end
+
+def delete
+  @cfn_helper.logger.info('Delete event is not implemented for this resource. Skipping.')
+end
+
+def update
+  raise "Config map file not found. Cannot perform update." unless ::File.exist?(@config_map_file)
+
+  @kubectl.apply(@config_map_file)
+end
+
+def initialize_kubectl
+  kubeconfig = AWS::EKS::Kubeconfig.new(@cfn_helper)
+  @kubectl = Kubernetes::Kubectl.new(@cfn_helper)
+  
+  kubeconfig.generate_kubeconfig(@cluster_name)
+end
+
+def write_yaml_config_file
+  @cfn_helper.logger.info('Writing k8s cluster config map file to /tmp/aws-auth-cm.yml...')
+  ::File.open(@config_map_file, 'w') { |file| file.write(@config_yaml) }  
 end
 
 def lambda_handler(event:, context:)
-  lambda = AWS::Lambda.new
-  initialize_cfn_helper(event)
-
-  if event['RequestType'] == 'Delete'
-    msg = "#{event['RequestType'].to_s} event detected. This method is not implemented. Skipping."
-
-    @cfn.send_success
-    return lambda.success(msg)
-  end
-
-  kubeconfig = AWS::EKS::Kubeconfig.new
-  kubectl = Kubernetes::Kubectl.new
-
-  config_map_file = '/tmp/aws-auth-cm.yml'
-  cluster_name = event['ResourceProperties']['ClusterName']
-  config_yaml = event['ResourceProperties']['ConfigMap']
-
-  puts "Cluster Name: #{cluster_name}"
-  puts "Config YAML: \n#{config_yaml}"
-
-  kubeconfig.generate_kubeconfig(cluster_name)
-
-  puts 'Writing k8s cluster config map file to /tmp/aws-auth-cm.yml...'
-  ::File.open(config_map_file, 'w') { |file| file.write(config_yaml) }
+  # Initializes CloudFormation Helper library
+  @cfn_helper = AWS::CloudFormation::Helper.new(self, event, context)
   
-  kubectl.apply(config_map_file)
+  # Add additional initialization code here
+  @lambda_helper = AWS::Lambda::Helper.new
+  @config_map_file = '/tmp/aws-auth-cm.yml'
+  @cluster_name = @cfn_helper.event.resource_properties['ClusterName']
+  @config_yaml = @cfn_helper.event.resource_properties['ConfigMap']
+  @cfn_helper.logger.info("Cluster Name: #{@cluster_name}")
+  @cfn_helper.logger.info("Config YAML: \n#{@config_yaml}")
 
-  @cfn.send_success
-  lambda.success('EKS cluster config map updated successfully.')
-rescue => e
-  # Send a failure message to the pre-signed S3 URL to notify cfn the resource failed
-  @cfn.send_failure unless @cfn.nil?
-  puts "CloudFormation helper is not initialized. Unable to send to failure response." if @cfn.nil?
-  raise e
+  initialize_kubectl
+  write_yaml_config_file
+
+  # Executes the event method
+  @cfn_helper.event.execute
+  @lambda_helper.success('Completed successfully.')
 end
