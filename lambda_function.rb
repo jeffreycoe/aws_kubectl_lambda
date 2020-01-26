@@ -48,7 +48,7 @@ def lambda_handler(event:, context:)
   initialize_kubectl
   write_yaml_config_file
 
-  # Executes the event method
+  # Executes the event
   @cfn_helper.event.execute
   @lambda_helper.success('Completed successfully.')
 end
