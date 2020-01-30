@@ -1,3 +1,7 @@
+# Load all Ruby Gems stored in the local ./vendor/bundle directory
+load_paths = Dir['./vendor/bundle/ruby/**/gems/**/lib']
+$LOAD_PATH.unshift(*load_paths)
+
 require 'aws_cloudformation_helper'
 
 require_relative './aws/cli.rb'
