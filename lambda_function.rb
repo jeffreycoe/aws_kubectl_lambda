@@ -33,7 +33,7 @@ def initialize_kubectl
 end
 
 def write_yaml_config_file
-  @cfn_helper.logger.info('Writing k8s cluster config map file to /tmp/aws-auth-cm.yml...')
+  @cfn_helper.logger.info('Writing k8s cluster config map file to /tmp/k8s-config-map.yml...')
   ::File.open(@config_map_file, 'w') { |file| file.write(@config_yaml) }  
 end
 
@@ -42,7 +42,7 @@ def lambda_handler(event:, context:)
   @cfn_helper = AWS::CloudFormation::Helper.new(self, event, context)
   
   # Add additional initialization code here
-  @config_map_file = '/tmp/aws-auth-cm.yml'
+  @config_map_file = '/tmp/k8s-config-map.yml'
   @cluster_name = @cfn_helper.event.resource_properties['ClusterName']
   @config_yaml = @cfn_helper.event.resource_properties['ConfigMap']
   @cfn_helper.logger.info("Cluster Name: #{@cluster_name}")
