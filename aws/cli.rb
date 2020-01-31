@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module AWS
   class CLI
     def aws_cli
@@ -11,8 +13,9 @@ module AWS
     
     def execute(cmd)
       @cfn_helper.logger.info("Executing AWS CLI command #{aws_cli} #{cmd}")
-      `#{aws_cli} #{cmd}`  
-      @cfn_helper.logger.info("AWS CLI command executed successfully!")
+      exit_status = system("#{aws_cli} #{cmd}")
+      raise 'Error occurred when executing AWS CLI command.' unless exit_status
+      @cfn_helper.logger.info('AWS CLI command executed successfully!')
     end
 
     def version

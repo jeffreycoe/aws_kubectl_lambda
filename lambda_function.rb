@@ -10,7 +10,7 @@ require_relative './aws/lambda/helper.rb'
 require_relative './kubernetes/kubectl.rb'
 
 def create
-  raise "Config map file not found. Cannot perform create." unless ::File.exist?(@config_map_file)
+  raise 'Config map file not found. Cannot perform create.' unless ::File.exist?(@config_map_file)
 
   @kubectl.apply(@config_map_file)
 end
@@ -20,7 +20,7 @@ def delete
 end
 
 def update
-  raise "Config map file not found. Cannot perform update." unless ::File.exist?(@config_map_file)
+  raise 'Config map file not found. Cannot perform update.' unless ::File.exist?(@config_map_file)
 
   @kubectl.apply(@config_map_file)
 end
@@ -42,7 +42,6 @@ def lambda_handler(event:, context:)
   @cfn_helper = AWS::CloudFormation::Helper.new(self, event, context)
   
   # Add additional initialization code here
-  @lambda_helper = AWS::Lambda::Helper.new
   @config_map_file = '/tmp/aws-auth-cm.yml'
   @cluster_name = @cfn_helper.event.resource_properties['ClusterName']
   @config_yaml = @cfn_helper.event.resource_properties['ConfigMap']
@@ -52,7 +51,7 @@ def lambda_handler(event:, context:)
   initialize_kubectl
   write_yaml_config_file
 
-  # Executes the event
+  # Executes the event method
   @cfn_helper.event.execute
   @lambda_helper.success('Completed successfully.')
 end

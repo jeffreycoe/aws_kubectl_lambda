@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 module AWS
   class EKS
     class Kubeconfig
-      def initialize(cfn_helper, config_file = "/tmp/kubeconfig")
+      def initialize(cfn_helper, config_file = '/tmp/kubeconfig')
         @cfn_helper = cfn_helper
         @config_file = config_file
         @aws_cli = AWS::CLI.new(@cfn_helper)
