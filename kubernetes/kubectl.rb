@@ -6,7 +6,7 @@ class Kubernetes
       "#{@binary_path}/kubectl --kubeconfig \"#{@config_file}\""
     end
     
-    def initialize(config_file = '/tmp/kubeconfig', binary_path = '/tmp/kubectl', cfn_helper)
+    def initialize(cfn_helper, config_file, binary_path = '/tmp/kubectl')
       @cfn_helper = cfn_helper
       @config_file = config_file
       @binary_path = binary_path
@@ -16,11 +16,14 @@ class Kubernetes
         cmd = "mkdir -p #{@binary_path}; "\
               "cp -R -v /opt/kubectl/kubectl #{@binary_path}; "\
               "chmod +x #{@binary_path}/kubectl"
+
         exit_status = system(cmd)
         raise "Failed to copy kubectl binary to #{@binary_path}." unless exit_status
+
+        ENV['KUBECTL_BINARY_PATH'] = binary_path
       end
     end
-    
+
     def print_version
       `#{kubectl} version`
     end
