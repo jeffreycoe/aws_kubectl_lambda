@@ -9,8 +9,8 @@ function handle_exit_code()
   fi
 }
 
-LAMBDA_FUNCTION_NAME=KubectlConfigMapApply
-ZIP_FILENAME=KubectlConfigMapApply.zip
+LAMBDA_FUNCTION_NAME=Kubectl
+ZIP_FILENAME=KubectlLambdaFunction.zip
 
 rm -r ./vendor
 
@@ -18,11 +18,11 @@ echo "Packaging AWS Lambda function $LAMBDA_FUNCTION_NAME"
 bundle install --path ./vendor/bundle
 handle_exit_code $? 'Failed to install Ruby Gems into ./vendor/bundle.'
 
-find . -iname '*.rb' -exec zip $LAMBDA_FUNCTION_NAME.zip {} \;
+find . -iname '*.rb' -exec zip $ZIP_FILENAME {} \;
 handle_exit_code $? 'Failed to add Ruby files to zip archive.'
 
-zip -r $LAMBDA_FUNCTION_NAME.zip ./vendor
+zip -r $ZIP_FILENAME ./vendor
 handle_exit_code $? 'Failed to add Ruby Gems to bundle.'
 
-echo "Generated $LAMBDA_FUNCTION_NAME.zip successfully!"
+echo "Generated $ZIP_FILENAME successfully!"
 echo 'Build complete.'
