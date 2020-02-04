@@ -11,6 +11,8 @@ class Kubernetes
       @config_file = config_file
       @binary_path = binary_path
 
+      ENV['KUBECTL_BINARY_PATH'] = @binary_path
+
       unless ::File.exist?("#{@binary_path}/kubectl")
         @cfn_helper.logger.info("Copying kubectl binary to #{@binary_path}...")
         cmd = "mkdir -p #{@binary_path}; "\
@@ -19,8 +21,6 @@ class Kubernetes
 
         exit_status = system(cmd)
         raise "Failed to copy kubectl binary to #{@binary_path}." unless exit_status
-
-        ENV['KUBECTL_BINARY_PATH'] = binary_path
       end
     end
 
