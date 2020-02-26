@@ -10,7 +10,7 @@ module AWS
         @kubectl = kubectl
 
         @cluster_name = @cfn_helper.event.resource_properties['ClusterName'].to_s.strip
-        @cluster = AWS::EKS::Cluster.new(@cfn_helper, cluster_name)
+        @cluster = AWS::EKS::Cluster.new(@cfn_helper, @cluster_name)
       end
 
       def deploy_vpc_admission_controller_webhook
