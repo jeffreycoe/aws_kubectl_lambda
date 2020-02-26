@@ -9,11 +9,15 @@ require 'securerandom'
 
 require_relative './aws/cli.rb'
 require_relative './aws/eks/actions.rb'
+require_relative './aws/eks/cluster.rb'
 require_relative './aws/eks/kubeconfig.rb'
 require_relative './aws/lambda/helper.rb'
 require_relative './kubernetes/kubectl.rb'
 
 def create
+  raise "Cluster #{@cluster_name} is not in an active state or does not exist." unless @cluster.active?
+
+  initialize_kubectl
   apply_configuration
 end
 
@@ -22,6 +26,9 @@ def delete
 end
 
 def update
+  raise "Cluster #{@cluster_name} is not in an active state or does not exist." unless @cluster.active?
+
+  initialize_kubectl
   apply_configuration
 end
 
@@ -44,6 +51,8 @@ def apply_configuration
 end
 
 def initialize_kubectl
+  return unless @cluster.exist?
+
   kubeconfig = AWS::EKS::Kubeconfig.new(@cfn_helper)
   kubectl_config_file = kubeconfig.generate_kubeconfig(@cluster_name)
 
@@ -65,9 +74,8 @@ def lambda_handler(event:, context:)
   @config_map_file = "/tmp/k8s-config-map-#{::SecureRandom.uuid}.yml"
   @cluster_name = @cfn_helper.event.resource_properties['ClusterName']
   @cfn_helper.logger.info("Cluster Name: #{@cluster_name}")
+  @cluster = AWS::EKS::Cluster.new(@cfn_helper, @cluster_name)
   lambda_helper = AWS::Lambda::Helper.new
-
-  initialize_kubectl
 
   # Executes the event method
   @cfn_helper.event.execute
