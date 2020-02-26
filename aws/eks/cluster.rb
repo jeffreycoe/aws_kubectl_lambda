@@ -77,7 +77,7 @@ module AWS
         end
 
         err_msg = "Cluster #{@cluster_name} did not become active in the specified timeout period (#{timeout} minutes)"
-        raise err_msg unless cluster.active?
+        raise err_msg if wait_time >= (timeout * 60)
 
         @cfn_helper.logger.info("Cluster #{cluster_name} reported an active status!")
       end
