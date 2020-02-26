@@ -46,6 +46,7 @@ module AWS
           @cluster.disable_api_endpoint_public_access
         when 'EnableClusterLogging'
           @cluster.enable_cluster_logging
+	  @cluster.wait_for_cluster_availability
         else
           err_msg = "Invalid action specified. Action: #{action}"
           @cfn_helper.logger.error(err_msg)
